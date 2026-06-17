@@ -52,11 +52,23 @@ cd voxcpm2-voice-cloner
 
 ### 2. 錄製參考音
 
+有兩種方式：
+
+**方式 A：網頁介面（推薦）**
+
+```powershell
+.\.venv\Scripts\python.exe webui_record.py
+```
+
+瀏覽器自動開啟，有錄音按鈕、逐字稿顯示，錄完自動存檔。
+
+**方式 B：命令列**
+
 ```powershell
 .\.venv\Scripts\python.exe record.py --voice 我的聲音
 ```
 
-螢幕會顯示一段文字，請對著麥克風自然地朗讀。錄完會存到 `voices/我的聲音/`。
+螢幕會顯示一段文字，對著麥克風自然地朗讀，念完按 Enter 停止。
 
 ### 3. 生成克隆語音
 
@@ -77,8 +89,10 @@ cd voxcpm2-voice-cloner
 ```
 voxcpm2-voice-cloner/
 ├── install.ps1              # 自動安裝腳本（偵測 GPU + 建環境）
-├── record.py                # 麥克風錄音，取得參考音 + 逐字稿
+├── webui_record.py          # 網頁錄音介面（Gradio，瀏覽器麥克風）
+├── record.py                # 命令列錄音（麥克風，按 Enter 停止）
 ├── clone.py                 # Ultimate Cloning 語音生成
+├── dialogue.py              # 多聲音對話生成範例
 ├── texts/
 │   └── sample_text.txt      # 給使用者朗讀的範例文字
 ├── voices/                  # 聲音資料夾（.gitignore 排除，本地保留）

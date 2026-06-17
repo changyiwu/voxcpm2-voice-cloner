@@ -88,8 +88,7 @@ Write-Host "  PyTorch 安裝完成。" -ForegroundColor Green
 
 # --- Step 5: 安裝 voxcpm + sounddevice ---
 Write-Host '[5/6] 安裝 voxcpm + sounddevice...' -ForegroundColor Yellow
-uv pip install --python $venvPython voxcpm sounddevice
-Write-Host "  voxcpm + sounddevice 安裝完成。" -ForegroundColor Green
+uv pip install --python $venvPython voxcpm sounddeviceWrite-Host "  voxcpm + sounddevice 安裝完成。" -ForegroundColor Green
 
 # --- Step 6: XPU 自動 patch ---
 if ($gpuType -eq 'xpu') {

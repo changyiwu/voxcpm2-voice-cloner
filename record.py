@@ -35,22 +35,35 @@ def load_text(filepath=None):
         return f.read().strip()
 
 
-def record_audio(seconds=RECORD_SECONDS, sr=SAMPLE_RATE):
-    """從系統麥克風錄音，回傳 numpy array。"""
+def record_audio(sr=SAMPLE_RATE):
+    """從系統麥克風錄音，按 Enter 開始，再按 Enter 停止。"""
     import sounddevice as sd
+    import threading
 
-    print(f'\n即將錄音 {seconds} 秒，取樣率 {sr}Hz。')
-    print('準備好後按 Enter 開始...')
+    print('\n準備好後按 Enter 開始錄音...')
     input()
 
-    print('錄音中...（請開始朗讀上面的文字）')
-    audio = sd.rec(int(seconds * sr), samplerate=sr, channels=1, dtype=np.float32)
-    for i in range(seconds, 0, -1):
-        print(f'\r剩餘: {i:2d} 秒', end='', flush=True)
-        time.sleep(1)
-    print('\r錄音完成！          ')
-    sd.wait()
-    return audio.flatten()
+    audio_chunks = []
+    stop_flag = threading.Event()
+
+    def callback(indata, frames, time_info, status):
+        audio_chunks.append(indata.copy())
+
+    def wait_for_enter():
+        input()
+        stop_flag.set()
+
+    print('錄音中... 念完後按 Enter 停止')
+
+    enter_thread = threading.Thread(target=wait_for_enter, daemon=True)
+    enter_thread.start()
+
+    with sd.InputStream(samplerate=sr, channels=1, dtype=np.float32, callback=callback):
+        while not stop_flag.is_set():
+            time.sleep(0.1)
+
+    print('\r錄音完成！                    ')
+    return np.concatenate(audio_chunks).flatten()
 
 
 def save_wav(audio, filepath, sr=SAMPLE_RATE):
@@ -72,8 +85,6 @@ def main():
                         help='聲音名稱，存到 voices/<name>/（預設: 三師爸）')
     parser.add_argument('--text-file', '-t',
                         help='朗讀文字檔（預設: texts/sample_text.txt）')
-    parser.add_argument('--seconds', '-s', type=int, default=RECORD_SECONDS,
-                        help=f'錄音秒數（預設: {RECORD_SECONDS}）')
     args = parser.parse_args()
 
     text = load_text(args.text_file)
@@ -95,7 +106,7 @@ def main():
     print(f'字數: {len(text.replace(" ", "").replace(",", "").replace("。", ""))} 字')
     print(f'預計朗讀時間: 約 {len(text) // 5} 秒')
 
-    audio = record_audio(args.seconds)
+    audio = record_audio()
     save_wav(audio, wav_path)
 
     # 同時存逐字稿
