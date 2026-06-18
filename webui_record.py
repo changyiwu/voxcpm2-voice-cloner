@@ -118,12 +118,19 @@ def main():
             )
 
         gr.Markdown('### 操作步驟')
-        gr.Markdown('1. 輸入聲音名稱\n2. 確認要朗讀的文字\n3. 按下方錄音按鈕，對著麥克風朗讀\n4. 錄完按停止\n5. 按「存檔」')
+        gr.Markdown(
+            '1. 輸入聲音名稱\n'
+            '2. 確認要朗讀的文字\n'
+            '3. 按下方麥克風按鈕錄音，對著麥克風朗讀\n'
+            '4. 錄完按停止\n'
+            '5. 按「存檔」\n\n'
+            '💡 如果瀏覽器找不到麥克風，可以先用 Windows 錄音機或命令列 `record.py` 錄好，再用「上傳」按鈕上傳音檔。'
+        )
 
         audio_input = gr.Audio(
-            label='麥克風錄音',
+            label='麥克風錄音 / 上傳音檔',
             type='filepath',
-            sources=['microphone'],
+            sources=['microphone', 'upload'],
             waveform_options=gr.WaveformOptions(show_recording_waveform=True),
         )
 
@@ -137,7 +144,13 @@ def main():
             outputs=[result_text, playback],
         )
 
-    app.launch(server_port=args.port, share=args.share)
+    app.launch(server_port=args.port, share=args.share, prevent_thread_lock=False)
+    print(f"\n網頁已啟動：http://127.0.0.1:{args.port}")
+    print("按 Ctrl+C 停止伺服器。\n")
+    try:
+        app.block_thread()
+    except KeyboardInterrupt:
+        print("\n伺服器已停止。")
 
 
 if __name__ == '__main__':
