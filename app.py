@@ -1,0 +1,173 @@
+#!/usr/bin/env python3
+"""
+app.py - VoxCPM2 語音錄製工具
+唯一的 UI：錄音 + 儲存。克隆與生成交由 AI Agent 處理。
+
+用法：
+  python app.py              # http://127.0.0.1:7860
+"""
+
+import os
+import numpy as np
+import gradio as gr
+
+REPO_DIR = os.path.dirname(os.path.abspath(__file__))
+SAMPLE_RATE = 16000
+
+CUSTOM_CSS = """
+body { font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif; }
+.step-box {
+    background-color: var(--block-background-fill, #f8f9fa); 
+    border-radius: 12px; 
+    padding: 20px; 
+    margin: 12px 0; 
+    border: 1px solid var(--border-color-primary, #e0e0e0);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    transition: all 0.2s ease-in-out;
+}
+.step-box:hover {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.04);
+}
+.reading-card {
+    background: linear-gradient(135deg, #fff9db 0%, #fff3bf 100%);
+    color: #856404;
+    border: 1px solid #ffeeb2;
+    padding: 20px;
+    border-radius: 10px;
+    font-size: 1.25em;
+    font-weight: 500;
+    line-height: 1.8;
+    margin: 12px 0;
+    box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.02);
+}
+.dark .reading-card {
+    background: linear-gradient(135deg, #2b2b1a 0%, #3e3a1f 100%);
+    color: #ffe066;
+    border: 1px solid #5c5327;
+}
+.success-msg { color:#2d8a56; font-weight:bold; }
+"""
+
+
+def list_voices():
+    vdir = os.path.join(REPO_DIR, "voices")
+    if not os.path.exists(vdir):
+        return []
+    return sorted(
+        d for d in os.listdir(vdir)
+        if os.path.isdir(os.path.join(vdir, d))
+        and os.path.exists(os.path.join(vdir, d, "ref_voice.wav"))
+    )
+
+
+def load_sample_text():
+    path = os.path.join(REPO_DIR, "texts", "sample_text.txt")
+    if os.path.exists(path):
+        with open(path, "r", encoding="utf-8") as f:
+            return f.read().strip()
+    return ""
+
+
+def on_save(audio_mic, audio_upload, voice_name):
+    audio_data = audio_mic or audio_upload
+    if audio_data is None:
+        return "⚠️ 請先按「開始錄音」錄下你的聲音。"
+    if not voice_name or not voice_name.strip():
+        return "⚠️ 請為你的聲音取一個名字。"
+
+    name = voice_name.strip()
+    try:
+        sr, audio = audio_data
+        if audio.ndim > 1:
+            audio = audio.mean(axis=1)
+        if sr != SAMPLE_RATE:
+            import resampy
+            audio = resampy.resample(audio, sr, SAMPLE_RATE)
+        peak = np.abs(audio).max()
+        if peak > 0 and peak < 0.01:
+            return "⚠️ 錄到的音量太小，請靠近麥克風再錄一次。"
+        if peak > 0:
+            audio = audio / peak * 0.95
+
+        vdir = os.path.join(REPO_DIR, "voices", name)
+        os.makedirs(vdir, exist_ok=True)
+        import soundfile as sf
+        sf.write(os.path.join(vdir, "ref_voice.wav"), audio.astype(np.float32), SAMPLE_RATE)
+        with open(os.path.join(vdir, "prompt.txt"), "w", encoding="utf-8") as f:
+            f.write(load_sample_text())
+
+        duration = len(audio) / SAMPLE_RATE
+        existing = list_voices()
+        voice_list = "、".join(existing)
+        return (
+            f"✅ 聲音「{name}」錄製成功！（{duration:.0f} 秒）\n\n"
+            f"目前已錄製的聲音：{voice_list}\n\n"
+            f"👉 接下來，你可以對 AI 說：\n"
+            f"「 用 {name} 的聲音說一段話 」"
+        )
+    except Exception as e:
+        return f"❌ 儲存失敗：{e}"
+
+
+def build_ui():
+    sample_text = load_sample_text()
+
+    with gr.Blocks(title="VoxCPM2 錄音工具", css=CUSTOM_CSS) as app:
+        gr.HTML("""
+        <div style="text-align:center; margin-bottom:24px;">
+          <h1 style="font-size:2em; margin-bottom:4px;">🎙️ VoxCPM2 語音錄製</h1>
+          <p style="font-size:1.05em; color:#666;">錄下你的聲音，後續由 AI 幫你生成任何語音。</p>
+        </div>
+        """)
+
+        with gr.Column(elem_classes="step-box"):
+            gr.Markdown("## ✏️ 為聲音取名字")
+            voice_name_input = gr.Textbox(
+                label="",
+                placeholder="例如：王老師、林主任...",
+                show_label=False,
+            )
+
+        with gr.Column(elem_classes="step-box"):
+            gr.Markdown("## 📖 請念這段文字")
+            gr.HTML(
+                f'<div class="reading-card">{sample_text}</div>'
+            )
+
+        with gr.Column(elem_classes="step-box"):
+            gr.Markdown("## 🎤 錄音並儲存")
+            audio_mic = gr.Audio(label="", type="numpy", sources=["microphone"], show_label=False)
+
+            gr.HTML('<div style="text-align:center; margin-top:8px;">'
+                    '👆 錄完後按這裡儲存 👇</div>')
+
+            with gr.Row():
+                save_btn = gr.Button("⬇️ 儲存聲音", variant="primary", size="lg")
+
+            with gr.Accordion("或上傳已錄好的音檔", open=False):
+                audio_upload = gr.Audio(label="", type="numpy", sources=["upload"], show_label=False)
+
+        save_msg = gr.Textbox(label="", show_label=False, lines=5, interactive=False)
+
+        save_btn.click(
+            fn=on_save,
+            inputs=[audio_mic, audio_upload, voice_name_input],
+            outputs=[save_msg],
+        )
+
+        gr.HTML("""
+        <div style="text-align:center; margin-top:24px; padding:12px; color:#999; font-size:0.85em;">
+        VoxCPM2（Apache-2.0 可商用） |
+        <a href="https://github.com/mathruffian-dot/voxcpm2-voice-cloner" target="_blank">GitHub</a>
+        </div>
+        """)
+
+    return app
+
+
+if __name__ == "__main__":
+    import argparse
+    p = argparse.ArgumentParser()
+    p.add_argument("--port", "-p", type=int, default=7860)
+    args = p.parse_args()
+    build_ui().launch(server_port=args.port, theme=gr.themes.Soft())
