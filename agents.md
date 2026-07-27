@@ -47,8 +47,8 @@ voxcpm2-voice-cloner/
 | 層級 | 平台 | 位置 | 讀取時機 |
 |------|------|------|---------|
 | L1 | 本地（GDrive） | `agents.md`＋`handoff.md`＋`CLAUDE.md`（橋接） | 每個 session |
-| L2 | GitHub | <建立中> | 指定時 |
-| L3 | Obsidian | <建立中> | 有需要時 |
+| L2 | GitHub | [changyiwu/voxcpm2-voice-cloner](https://github.com/changyiwu/voxcpm2-voice-cloner)（**公開**） | 指定時 |
+| L3 | Obsidian | `voxcpm2-voice-cloner/專案工作流程.md` | 有需要時 |
 
 ## 環境
 
