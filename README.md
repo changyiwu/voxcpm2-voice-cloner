@@ -168,4 +168,8 @@ VoxCPM2 官方目前只支援 NVIDIA CUDA。Intel Arc 的 XPU 支援透過 patch
 ## 授權
 
 - VoxCPM2 模型與程式碼：[Apache-2.0](https://github.com/OpenBMB/VoxCPM/blob/main/LICENSE)（可商用）
-- 本專案腳本：MIT
+- 本專案腳本：[MIT](LICENSE)
+
+### 衍生來源
+
+本專案衍生自 [mathruffian-dot/voxcpm2-voice-cloner](https://github.com/mathruffian-dot/voxcpm2-voice-cloner)。該 repo 未附 LICENSE 檔（GitHub 判定為「無授權」），僅在 README 中聲明「本專案腳本：MIT」。本專案的 [LICENSE](LICENSE) 由本 repo 作者針對本 repo 內容做出 MIT 授權；若要再散布衍生自上游的部分，建議另向上游作者確認。

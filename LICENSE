@@ -1,0 +1,44 @@
+MIT License
+
+Copyright (c) 2026 Chang Yi Wu
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+## Attribution / 衍生說明
+
+This project is derived from
+https://github.com/mathruffian-dot/voxcpm2-voice-cloner
+
+That upstream repository does not ship a LICENSE file; its README states
+"本專案腳本：MIT" (project scripts: MIT). The MIT grant above is made by this
+repository's author for this repository's own changes. Anyone redistributing
+the upstream-derived portions should verify the upstream terms directly with
+its author.
+
+本專案衍生自上述 repo。該 repo 未附 LICENSE 檔，僅在 README 中聲明腳本以 MIT
+釋出。上方的 MIT 授權由本 repo 作者針對本 repo 的內容做出；如需再散布衍生自
+上游的部分，建議另向上游作者確認授權。
+
+## Third-party components
+
+- VoxCPM2 model and code (openbmb/VoxCPM2, OpenBMB/VoxCPM) — Apache-2.0
+  https://github.com/OpenBMB/VoxCPM/blob/main/LICENSE
+  This project only calls the model; it does not redistribute the weights.
