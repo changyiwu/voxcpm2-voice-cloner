@@ -16,7 +16,7 @@
 - [x] 階段一：環境安裝（uv + Python 3.12 venv + torch cu128 + voxcpm）
 - [x] 階段二：確認 GPU 路徑可用（RTX 5060 Ti / CUDA，已實測生成成功）
 - [x] 階段三：錄音 UI 可用（`record_ui.py`，繞過 Smart App Control 封鎖）
-- [ ] 階段四：評估 `optimize=True` 是否值得開啟（目前 `clone.py` 寫死 `False`，未實測比較）
+- [x] 階段四：評估 `optimize=True` — **結案：維持 `False`**。本機沒有 triton／`cl.exe`，`torch.compile` 會被靜默降級（`Warning: torch.compile disabled - triton is not installed`），暖機後 RTF 兩者同為 1.17、VRAM 同為 6.46GB，但 `optimize=True` 會多跑一次暖機生成、載入從 9.7s 變 13.0s。要真正生效得裝非官方的 `triton-windows`＋MSVC，有 Smart App Control 封鎖風險，不划算
 - [ ] 階段五：評估常駐生成服務（現在每次執行 `clone.py` 都要重載模型約 10 秒）
 
 ## 資料夾結構
@@ -37,6 +37,7 @@ voxcpm2-voice-cloner/
 ├── install.bat / install.ps1 # 自動偵測 GPU + 安裝依賴
 ├── .gpu_type                 # 安裝時寫入的 GPU 模式標記
 ├── texts/sample_text.txt     # 錄音時朗讀的文字
+├── skills/voice-cloner/      # 全域技能原始檔（不進版控，見下方「全域技能」）
 ├── voices/                   # 已錄製的聲音（不進版控）
 ├── patches/                  # Intel Arc XPU 支援
 └── output/                   # 生成的語音（不進版控）
@@ -58,8 +59,8 @@ voxcpm2-voice-cloner/
 | Python | `.venv\Scripts\python.exe`（專案目錄下，由 `install.ps1` 建立） |
 | 模型 | `openbmb/VoxCPM2`（Apache-2.0；權重已在 HuggingFace 快取） |
 | 裝置 | NVIDIA GeForce RTX 5060 Ti（16GB，CUDA，sm_120）／torch 2.11.0+cu128 |
-| 效能 | 實測 RTF ~1.2（每行程第一句 ~1.9），模型載入約 10 秒，尖峰 VRAM 6.46GB |
-| 輸出 | `output/cloned_voice.wav` |
+| 效能 | 模型載入 ~9.7 秒（每次執行都要重載），尖峰 VRAM 6.46GB。RTF 隨稿長變化：719 字長稿 **1.0**、中等句 1.1~1.3、10 字以內短句 2.5~2.9（固定開銷攤不掉）。**長稿一次念完比拆成多次划算** |
+| 輸出 | `output/cloned_voice.wav`（`--output` 可改） |
 
 > 所有指令都以專案目錄為工作目錄執行。若尚未安裝（`.venv` 不存在），先請使用者雙擊 `install.bat`。
 
@@ -105,9 +106,10 @@ voxcpm2-voice-cloner/
 .\.venv\Scripts\python.exe dialogue.py
 ```
 
-- 預設使用 `三師爸` 和 `三帥媽` 的聲音（本機目前沒有這兩個聲音，需先改腳本）
+- 換聲音：改腳本頂部的 `SPEAKER_A` / `SPEAKER_B` 兩個常數（預設 `小吳` / `老柯`），對話清單與輸出檔名都會跟著走
 - 輸出：`output/dialogue_<A>_<B>.wav`
 - 自訂對話內容：編輯 `dialogue.py` 中的 `dialogue` 清單
+- 模型只載入一次、逐句切換聲音，攤下來每句只多約 10 秒。實測 8 句 35.8 秒對話共 59 秒（**第一句是暖機、會特別慢**，之後穩定在 RTF ~1.1）
 
 ### record_ui.py — 錄音 UI
 
@@ -138,10 +140,20 @@ voxcpm2-voice-cloner/
 
 | 使用者說的 | Agent 動作 |
 |-----------|-----------|
-| 「用OOO的聲音說XXX」 | `clone.py "XXX" --voice OOO` |
+| 「用OOO的聲音念出／說出／講出XXX」 | 走 `voice-cloner` 全域技能（見下節）；沒裝技能就直接 `clone.py "XXX" --voice OOO` |
 | 「讓A和B對話」 | 編輯 `dialogue.py` 對話清單 → 執行 |
 | 「有哪些聲音」 | `ls voices\` |
 | 「我要錄聲音」 | 引導使用者雙擊 `start.bat`，或開啟 http://127.0.0.1:7860 |
+
+## 全域技能 voice-cloner
+
+讓四家 Agent 在**任何工作目錄**都能用「用小吳的聲音念出……」這句話直接生成語音。
+
+- **原始檔**：`skills/voice-cloner/SKILL.md`（本專案內）。`skills/` 已加進 `.gitignore`——技能含本機絕對路徑與個人聲音名稱，**不進這個公開 repo**，跨電腦只靠 Google 雲端硬碟同步
+- **安裝副本四份**：Claude Code `~/.claude/skills/`、Codex `~/.agents/skills/`、OpenCode `~/.config/opencode/skills/`、Antigravity `~/.gemini/config/skills/`
+- **改完原始檔**說一句「同步技能」，交給全域技能 `sync-skills` 覆蓋四份副本
+- **換電腦的第一次**：`sync-skills` 只覆蓋已裝過的副本，所以會回報 `voice-cloner` 未安裝並徵求同意首裝——答應即可
+- 技能行為：預設聲音 `小吳`、文字走暫存檔＋`--file`（避開 PowerShell 標點問題）、輸出帶時間戳（不蓋掉上一次）、把音檔本身交給使用者
 
 ## 工作約定
 

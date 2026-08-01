@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """
-對話生成 — 三師爸與三帥媽的閒聊
+對話生成 — 兩個聲音的閒聊
 模型只載入一次，逐句切換聲音生成，最後拼接成完整對話。
+
+要換聲音就改 SPEAKER_A / SPEAKER_B（對應 voices/ 目錄名），要換內容就改 dialogue 清單。
 """
 from voxcpm import VoxCPM
 import soundfile as sf
@@ -11,17 +13,39 @@ import os
 
 REPO_DIR = os.path.dirname(os.path.abspath(__file__))
 
+# 說話者：對應 voices/<名稱>/ 目錄
+SPEAKER_A = "小吳"
+SPEAKER_B = "老柯"
+
 # 對話腳本：(說話者, 文字)
 dialogue = [
-    ("三帥媽", "嘿，你今天怎麼這麼晚才回來？"),
-    ("三師爸", "喔，剛剛在弄一個 AI 語音的東西，搞到忘記時間了。"),
-    ("三帥媽", "AI 語音？就是那個可以模仿別人聲音的嗎？"),
-    ("三師爸", "對啊，叫 VoxCPM2，開源的，還可以商用。"),
-    ("三帥媽", "聽起來很厲害耶，那它有辦法模仿我的聲音嗎？"),
-    ("三師爸", "已經模仿了啊，你現在聽到的就是你的聲音。"),
-    ("三帥媽", "哇，真的假的！那我以後是不是不用自己錄音了？"),
-    ("三師爸", "哈，理論上是啦，但還是真人講的比較有感情啦。"),
+    (SPEAKER_B, "嘿，你今天怎麼這麼晚才回來？"),
+    (SPEAKER_A, "喔，剛剛在弄一個 AI 語音的東西，搞到忘記時間了。"),
+    (SPEAKER_B, "AI 語音？就是那個可以模仿別人聲音的嗎？"),
+    (SPEAKER_A, "對啊，叫 VoxCPM2，開源的，還可以商用。"),
+    (SPEAKER_B, "聽起來很厲害耶，那它有辦法模仿我的聲音嗎？"),
+    (SPEAKER_A, "已經模仿了啊，你現在聽到的就是你的聲音。"),
+    (SPEAKER_B, "哇，真的假的！那我以後是不是不用自己錄音了？"),
+    (SPEAKER_A, "哈，理論上是啦，但還是真人講的比較有感情啦。"),
 ]
+
+def detect_device():
+    """從 install.ps1 產生的 .gpu_type 讀取，或自動偵測。"""
+    gpu_type_file = os.path.join(REPO_DIR, '.gpu_type')
+    if os.path.exists(gpu_type_file):
+        with open(gpu_type_file, 'r', encoding='utf-8') as f:
+            gpu_type = f.read().strip()
+    else:
+        import torch
+        if torch.cuda.is_available():
+            gpu_type = 'cuda'
+        elif hasattr(torch, 'xpu') and torch.xpu.is_available():
+            gpu_type = 'xpu'
+        else:
+            gpu_type = 'cpu'
+
+    device_map = {'cuda': 'cuda', 'xpu': 'xpu', 'cpu': 'cpu'}
+    return device_map.get(gpu_type, 'cpu')
 
 def load_voice(voice_name):
     """讀取指定聲音的參考音與逐字稿。"""
@@ -33,14 +57,16 @@ def load_voice(voice_name):
     return ref_wav, prompt_text
 
 def main():
+    device = detect_device()
+    print(f"裝置: {device}")
     print("載入 VoxCPM2 模型...")
     t0 = time.time()
-    model = VoxCPM.from_pretrained("openbmb/VoxCPM2", load_denoiser=False, device="xpu", optimize=False)
+    model = VoxCPM.from_pretrained("openbmb/VoxCPM2", load_denoiser=False, device=device, optimize=False)
     print(f"模型載入完成，耗時 {time.time()-t0:.1f}s\n")
 
     # 預載兩個聲音的參考資料
     voices = {}
-    for name in ["三師爸", "三帥媽"]:
+    for name in [SPEAKER_A, SPEAKER_B]:
         voices[name] = load_voice(name)
         print(f"  已載入聲音: {name}")
 
@@ -72,7 +98,7 @@ def main():
     # 拼接所有片段
     full_audio = np.concatenate(clips)
     total_duration = len(full_audio) / model.tts_model.sample_rate
-    output_path = os.path.join(REPO_DIR, "output", "dialogue_三師爸_三帥媽.wav")
+    output_path = os.path.join(REPO_DIR, "output", f"dialogue_{SPEAKER_A}_{SPEAKER_B}.wav")
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
     sf.write(output_path, full_audio, model.tts_model.sample_rate)
 
