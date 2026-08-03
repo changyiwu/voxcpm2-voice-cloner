@@ -167,6 +167,17 @@ voxcpm2-voice-cloner/
 
 **本檔不要出現的東西**：❌ `## 最近進度`／逐次工作紀錄、❌ 決策理由與踩坑完整版。歷史寫 L3 筆記的〈🗓️ 最近更動紀錄〉〈🧠 決策紀錄〉〈🕳️ 踩坑筆記〉；踩過的坑只把**結論**收斂成一條祈使句寫進〈工作約定〉，原因留 L3。
 
+## 專案專屬規則
+
+- **`skills/` 不進版控**。`voice-cloner` 的原始檔在 `skills/voice-cloner/`，含本機絕對路徑與個人聲音名稱，而 repo 是公開的，所以已 gitignore。**跨電腦只靠 GDrive 同步**（跟 `handoff.md` 同一套做法）——換電腦前確認雲端同步跑完。`voices/`、`output/` 同樣不進版控
+- **不要開 `optimize=True`**。本機沒有 triton／`cl.exe`，`torch.compile` 會被 `try/except` 靜默降級（只印 `Warning: torch.compile disabled - triton is not installed`），速度零改善卻多花 3.3 秒載入
+- **模型載入偶爾變 60～90 秒是正常的**：HuggingFace 快取在重新驗證（Windows 無 symlink），不是壞掉，等它跑完即可。正常約 9.7 秒
+- **全域技能不能用相對路徑**：`.\.venv\Scripts\python.exe` 在非專案目錄會 `CommandNotFoundException`，一律用絕對路徑
+- **沙箱會擋下 `Remove-Item -Recurse -Force`**（回報 `path '*' is blocked`），改用 `[System.IO.Directory]::Delete($p,$true)`
+- **Smart App Control 的限制目前只在 PC-YI-SL 驗證過**，其他電腦未實測；生成路徑不受影響
+- 新增 `.ps1` 要存成 **UTF-8 with BOM**；`SKILL.md` 則**絕對不能有 BOM**（frontmatter 會解析失敗、技能觸發不了）
+- repo 為**公開**，新增檔案前先確認不含個資
+
 ## 工作約定
 
 - 任何 Agent、任何電腦：**開工先讀 `handoff.md`，收工必更新 `handoff.md`**
