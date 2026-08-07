@@ -39,7 +39,6 @@ voxcpm2-voice-cloner/
 ├── texts/sample_text.txt     # 錄音時朗讀的文字
 ├── skills/voice-cloner/      # 全域技能原始檔（不進版控，見下方「全域技能」）
 ├── voices/                   # 已錄製的聲音（不進版控）
-├── patches/                  # Intel Arc XPU 支援
 └── output/                   # 生成的語音（不進版控）
 ```
 
@@ -98,7 +97,7 @@ voxcpm2-voice-cloner/
 - `--voice <名稱>`：對應 `voices/<名稱>/` 目錄（預設 `三師爸`）
 - `--file <路徑>`：從文字檔讀取要生成的內容
 - `--output <路徑>`：輸出路徑（預設 `output/cloned_voice.wav`）
-- `--device cuda|xpu|cpu`：強制指定裝置（預設自動偵測）
+- `--device cuda|cpu`：強制指定裝置（預設自動偵測）
 
 ### dialogue.py — 用多個聲音生成對話
 
@@ -133,8 +132,9 @@ voxcpm2-voice-cloner/
 執行 `clone.py` / `dialogue.py` 時自動偵測，順序為：讀取 `.gpu_type`（`install.ps1` 產生）→ 若無則用 torch 偵測。
 
 - NVIDIA GPU → CUDA
-- Intel Arc GPU → XPU（需 patch，`install.ps1` 已處理；套件更新後執行 `patches\repatch_xpu.ps1` 恢復）
 - 無獨顯 → CPU（較慢）
+
+> 只支援 CUDA 與 CPU 兩種模式，不支援 Intel Arc（XPU）。`.gpu_type` 若出現 `xpu` 等無效值，一律退回 CPU。
 
 ## 使用者自然語言對照
 

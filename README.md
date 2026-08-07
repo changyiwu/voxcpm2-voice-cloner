@@ -6,7 +6,7 @@
 
 ## 特色
 
-- **自動偵測 GPU**：NVIDIA CUDA / Intel Arc XPU / CPU 三種模式自動切換
+- **自動偵測 GPU**：NVIDIA CUDA / CPU 兩種模式自動切換
 - **Ultimate Cloning**：同時使用參考音 + 逐字稿，連語氣節奏都一起複製
 - **網頁錄音**：`record_ui.py` 提供簡潔錄音介面（取名 → 看稿 → 錄音 → 儲存），零額外依賴
 - **自然語言操作**：錄完後，直接對 AI Agent 說「用王老師的聲音說一段話」，Agent 自動呼叫工具
@@ -18,7 +18,6 @@
 - Python 3.10–3.12（安裝腳本會用 uv 自動建立 3.12 環境）
 - 顯卡（擇一）：
   - NVIDIA GPU（CUDA 12+，約 8GB VRAM）
-  - Intel Arc GPU（XPU，約 8GB VRAM，需自動 patch）
   - 無獨顯也可用 CPU（較慢，RTF 約 8x）
 - 約 5GB 硬碟空間（模型權重）
 - 麥克風
@@ -33,7 +32,6 @@
 2. 建立 Python 3.12 虛擬環境 `.venv`
 3. 偵測 GPU 類型
 4. 安裝對應版本的 PyTorch + voxcpm
-5. 若為 Intel Arc，自動套用 XPU patch
 
 ### 2. 錄音
 
@@ -109,18 +107,18 @@ voxcpm2-voice-cloner/
 ├── agents.md                 # Agent 使用指南
 ├── texts/sample_text.txt     # 錄音時朗讀的文字
 ├── voices/                   # 已錄製的聲音（本地，不進版控）
-├── patches/                  # Intel Arc XPU 支援
 └── output/                   # 生成的語音
 ```
 
 ## GPU 支援對照
 
-| GPU | 模式 | PyTorch | 需要 patch | 效能 |
-|-----|------|---------|-----------|------|
-| NVIDIA RTX 5060 Ti | cuda | cu128 wheel | 不需要 | **RTF ~1.2（實測）** |
-| NVIDIA (CUDA 12+) | cuda | cu128 wheel | 不需要 | RTF ~0.3（RTX 4090，未實測） |
-| Intel Arc (XPU) | xpu | xpu wheel | 需要（自動） | RTF ~2–4（Arc 140T，未實測） |
-| 無獨顯 | cpu | cpu wheel | 不需要 | RTF ~8.0（未實測） |
+| GPU | 模式 | PyTorch | 效能 |
+|-----|------|---------|------|
+| NVIDIA RTX 5060 Ti | cuda | cu128 wheel | **RTF ~1.2（實測）** |
+| NVIDIA (CUDA 12+) | cuda | cu128 wheel | RTF ~0.3（RTX 4090，未實測） |
+| 無獨顯 | cpu | cpu wheel | RTF ~8.0（未實測） |
+
+> 本專案只支援 NVIDIA CUDA 與 CPU。Intel Arc（XPU）支援已於 2026-08-08 移除。
 
 > RTF = 生成 N 秒語音所需的時間倍率，越低越快。
 
@@ -148,22 +146,6 @@ ImportError: DLL load failed while importing ...: 應用程式控制原則已封
 `record_ui.py` 就是為此而寫：只用 Python 標準庫的 `http.server`，不經過 pandas/pyarrow，因此在 Smart App Control 開啟的機器上照常運作。**預設的 `start.bat` 已指向它，一般情況下你不需要做任何事。**
 
 > 注意：在 Defender 新增排除項目**無法**解決此問題——攔截來自核心模式的 Code Integrity，而非防毒引擎，且 Smart App Control 不提供白名單機制。關閉 Smart App Control 是可行但**不可逆**的（除非重灌 Windows 才能再次啟用），不建議只為了錄音介面而關閉。
-
-## Intel Arc (XPU) 注意事項
-
-VoxCPM2 官方目前只支援 NVIDIA CUDA。Intel Arc 的 XPU 支援透過 patch 實現：
-
-- `install.ps1` 會自動套用 patch
-- 若 `pip install -U voxcpm` 更新了套件，patch 會被覆蓋
-- 執行 `patches\repatch_xpu.ps1` 即可恢復：
-
-```powershell
-.\patches\repatch_xpu.ps1
-```
-
-### 根治計畫
-
-本專案已向 [OpenBMB/VoxCPM](https://github.com/OpenBMB/VoxCPM) 提交 XPU 支援 PR（對應 [Issue #215](https://github.com/OpenBMB/VoxCPM/issues/215)）。官方合併後，patch 機制將自動退役，`pip install voxcpm` 即原生支援 Intel Arc。
 
 ## 授權
 

@@ -37,15 +37,9 @@ def detect_device():
             gpu_type = f.read().strip()
     else:
         import torch
-        if torch.cuda.is_available():
-            gpu_type = 'cuda'
-        elif hasattr(torch, 'xpu') and torch.xpu.is_available():
-            gpu_type = 'xpu'
-        else:
-            gpu_type = 'cpu'
+        gpu_type = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-    device_map = {'cuda': 'cuda', 'xpu': 'xpu', 'cpu': 'cpu'}
-    return device_map.get(gpu_type, 'cpu')
+    return gpu_type if gpu_type in ('cuda', 'cpu') else 'cpu'
 
 def load_voice(voice_name):
     """讀取指定聲音的參考音與逐字稿。"""

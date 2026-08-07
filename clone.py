@@ -27,15 +27,9 @@ def detect_device():
             gpu_type = f.read().strip()
     else:
         import torch
-        if torch.cuda.is_available():
-            gpu_type = 'cuda'
-        elif hasattr(torch, 'xpu') and torch.xpu.is_available():
-            gpu_type = 'xpu'
-        else:
-            gpu_type = 'cpu'
+        gpu_type = 'cuda' if torch.cuda.is_available() else 'cpu'
 
-    device_map = {'cuda': 'cuda', 'xpu': 'xpu', 'cpu': 'cpu'}
-    return device_map.get(gpu_type, 'cpu')
+    return gpu_type if gpu_type in ('cuda', 'cpu') else 'cpu'
 
 
 def resolve_voice_files(voice, reference_override, text_override):
@@ -58,7 +52,7 @@ def main():
                         help='覆蓋參考音檔路徑（預設由 --voice 決定）')
     parser.add_argument('--text-file', '-t',
                         help='覆蓋逐字稿檔案路徑（預設由 --voice 決定）')
-    parser.add_argument('--device', '-d', help='強制指定裝置 (cuda/xpu/cpu)')
+    parser.add_argument('--device', '-d', help='強制指定裝置 (cuda/cpu)')
     args = parser.parse_args()
 
     # 取得要生成的文字
