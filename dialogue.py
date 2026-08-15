@@ -37,9 +37,14 @@ def detect_device():
             gpu_type = f.read().strip()
     else:
         import torch
-        gpu_type = 'cuda' if torch.cuda.is_available() else 'cpu'
+        if torch.cuda.is_available():
+            gpu_type = 'cuda'
+        elif getattr(torch.backends, 'mps', None) and torch.backends.mps.is_available():
+            gpu_type = 'mps'          # Apple Silicon
+        else:
+            gpu_type = 'cpu'
 
-    return gpu_type if gpu_type in ('cuda', 'cpu') else 'cpu'
+    return gpu_type if gpu_type in ('cuda', 'mps', 'cpu') else 'cpu'
 
 def load_voice(voice_name):
     """讀取指定聲音的參考音與逐字稿。"""

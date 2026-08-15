@@ -6,7 +6,7 @@
 
 ## 特色
 
-- **自動偵測 GPU**：NVIDIA CUDA / CPU 兩種模式自動切換
+- **自動偵測加速裝置**：NVIDIA CUDA / Apple Silicon MPS / CPU 三種模式自動切換
 - **Ultimate Cloning**：同時使用參考音 + 逐字稿，連語氣節奏都一起複製
 - **網頁錄音**：`record_ui.py` 提供簡潔錄音介面（取名 → 看稿 → 錄音 → 儲存），零額外依賴
 - **自然語言操作**：錄完後，直接對 AI Agent 說「用王老師的聲音說一段話」，Agent 自動呼叫工具
@@ -14,10 +14,12 @@
 
 ## 系統需求
 
-- Windows 10/11（Linux/Mac 可自行調整 install 腳本）
+- Windows 10/11 或 macOS
+- PowerShell 7（`pwsh`）；macOS 用 `brew install --cask powershell` 安裝
 - Python 3.10–3.12（安裝腳本會用 uv 自動建立 3.12 環境）
-- 顯卡（擇一）：
+- 加速裝置（擇一）：
   - NVIDIA GPU（CUDA 12+，約 8GB VRAM）
+  - Apple Silicon（M 系列，走 Metal／MPS）
   - 無獨顯也可用 CPU（較慢，RTF 約 8x）
 - 約 5GB 硬碟空間（模型權重）
 - 麥克風
@@ -26,16 +28,19 @@
 
 ### 1. 安裝
 
-雙擊 `install.bat`（或 `install.ps1`）。腳本會自動完成：
+Windows 雙擊 `install.bat`（或 `install.ps1`）；macOS 跑 `pwsh -File install.ps1`。腳本會自動完成：
 
 1. 檢查／安裝 uv 套件管理器
 2. 建立 Python 3.12 虛擬環境 `.venv`
-3. 偵測 GPU 類型
+3. 偵測加速裝置（CUDA／MPS／CPU）
 4. 安裝對應版本的 PyTorch + voxcpm
 
 ### 2. 錄音
 
-雙擊 `start.bat` → 瀏覽器打開 → 取名 → 對著麥克風念稿 → 儲存。
+Windows 雙擊 `start.bat`；macOS 跑 `./.venv/bin/python record_ui.py --open`。
+瀏覽器打開 → 取名 → 對著麥克風念稿 → 儲存。
+
+> `install.bat` 與 `start.bat` 是 Windows 專屬的雙擊啟動器，macOS 沒有對應檔案，照上面的指令直接跑即可。
 
 ### 3. 使用（透過 AI Agent）
 
@@ -50,6 +55,12 @@ Agent 會自動找到對應聲音、生成語音、回傳音檔。
 > 💡 本專案設計為 **AI Agent 工具包**，人類只做錄音，其他交給 Agent。
 
 ## 命令列工具（替代方案，不需 GUI 時可用）
+
+> **兩個平台的直譯器路徑不同**，以下範例寫的是 Windows 形式：
+> - Windows：`.\.venv\Scripts\python.exe`
+> - macOS：`./.venv/bin/python`
+>
+> 安裝腳本跑完會把這台該用的那一個印在「下一步」，照著複製即可。
 
 ### 錄製參考音
 

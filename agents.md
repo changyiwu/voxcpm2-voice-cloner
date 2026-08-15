@@ -54,14 +54,14 @@ voxcpm2-voice-cloner/
 
 | 項目 | 值 |
 |------|-----|
-| 專案目錄 | `C:\Users\chang\我的雲端硬碟\agents\voxcpm2-voice-cloner` |
-| Python | `.venv\Scripts\python.exe`（專案目錄下，由 `install.ps1` 建立） |
+| 專案目錄 | 雲端硬碟的 `agents/voxcpm2-voice-cloner`（實際絕對路徑每台不同，一律以 cwd 為準） |
+| Python | Windows `.venv\Scripts\python.exe`／macOS `.venv/bin/python`（專案目錄下，由 `install.ps1` 建立） |
 | 模型 | `openbmb/VoxCPM2`（Apache-2.0；權重已在 HuggingFace 快取） |
-| 裝置 | NVIDIA GeForce RTX 5060 Ti（16GB，CUDA，sm_120）／torch 2.11.0+cu128 |
+| 裝置 | 三種模式自動切換：NVIDIA CUDA／Apple Silicon MPS／CPU。安裝時寫進 `.gpu_type`，`clone.py` 與 `dialogue.py` 讀它 |
 | 效能 | 模型載入 ~9.7 秒（每次執行都要重載），尖峰 VRAM 6.46GB。RTF 隨稿長變化：719 字長稿 **1.0**、中等句 1.1~1.3、10 字以內短句 2.5~2.9（固定開銷攤不掉）。**長稿一次念完比拆成多次划算** |
 | 輸出 | `output/cloned_voice.wav`（`--output` 可改） |
 
-> 所有指令都以專案目錄為工作目錄執行。若尚未安裝（`.venv` 不存在），先請使用者雙擊 `install.bat`。
+> 所有指令都以專案目錄為工作目錄執行。若尚未安裝（`.venv` 不存在）：Windows 請使用者雙擊 `install.bat`，macOS 跑 `pwsh -File install.ps1`（`.bat` 是 Windows 專屬啟動器，mac 沒有）。
 
 ### ⚠️ 環境限制：Smart App Control（PC-YI-SL）
 
@@ -172,10 +172,10 @@ voxcpm2-voice-cloner/
 - **`skills/` 不進版控**。`voice-cloner` 的原始檔在 `skills/voice-cloner/`，含本機絕對路徑與個人聲音名稱，而 repo 是公開的，所以已 gitignore。**跨電腦只靠 GDrive 同步**（跟 `handoff.md` 同一套做法）——換電腦前確認雲端同步跑完。`voices/`、`output/` 同樣不進版控
 - **不要開 `optimize=True`**。本機沒有 triton／`cl.exe`，`torch.compile` 會被 `try/except` 靜默降級（只印 `Warning: torch.compile disabled - triton is not installed`），速度零改善卻多花 3.3 秒載入
 - **模型載入偶爾變 60～90 秒是正常的**：HuggingFace 快取在重新驗證（Windows 無 symlink），不是壞掉，等它跑完即可。正常約 9.7 秒
-- **全域技能不能用相對路徑**：`.\.venv\Scripts\python.exe` 在非專案目錄會 `CommandNotFoundException`，一律用絕對路徑
+- **全域技能不能用相對路徑**：venv 直譯器的相對路徑在非專案目錄會 `CommandNotFoundException`，一律用絕對路徑（兩平台的檔名不同，先偵測再組）
 - **沙箱會擋下 `Remove-Item -Recurse -Force`**（回報 `path '*' is blocked`），改用 `[System.IO.Directory]::Delete($p,$true)`
 - **Smart App Control 的限制目前只在 PC-YI-SL 驗證過**，其他電腦未實測；生成路徑不受影響
-- 新增 `.ps1` 要存成 **UTF-8 with BOM**；`SKILL.md` 則**絕對不能有 BOM**（frontmatter 會解析失敗、技能觸發不了）
+- **所有檔案一律 UTF-8 無 BOM**（`.ps1` 也是）。舊的「`.ps1` 要存成 UTF-8 with BOM」規則前提是 PowerShell 5.1，已隨 pwsh 7 定案而廢止；`SKILL.md` 有 BOM 會讓 frontmatter 解析失敗、技能觸發不了。詳見 `cross-device-agent-skills/platform.md`
 - repo 為**公開**，新增檔案前先確認不含個資
 
 ## 工作約定
