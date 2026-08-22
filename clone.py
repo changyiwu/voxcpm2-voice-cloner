@@ -2,11 +2,11 @@
 """
 clone.py - 用 VoxCPM2 Ultimate Cloning 生成你的克隆語音。
 
-預設使用「三師爸」聲音。也可以用 --voice 指定其他聲音，或用 --reference/--text-file 自訂。
+預設使用「小吳」聲音。也可以用 --voice 指定其他聲音，或用 --reference/--text-file 自訂。
 
 用法：
   python clone.py "你好，這是我的克隆聲音。"
-  python clone.py "文字" --voice 三師爸
+  python clone.py "文字" --voice 小吳
   python clone.py --file my_script.txt
   python clone.py "文字" --output output/my_voice.wav
   python clone.py "文字" --reference my_ref.wav --text-file my_ref_text.txt
@@ -51,8 +51,8 @@ def main():
     parser.add_argument('--file', '-f', help='從文字檔讀取要生成的內容')
     parser.add_argument('--output', '-o', default='output/cloned_voice.wav',
                         help='輸出檔案路徑（預設: output/cloned_voice.wav）')
-    parser.add_argument('--voice', '-v', default='三師爸',
-                        help='聲音名稱，對應 voices/ 目錄（預設: 三師爸）')
+    parser.add_argument('--voice', '-v', default='小吳',
+                        help='聲音名稱，對應 voices/ 目錄（預設: 小吳）')
     parser.add_argument('--reference', '-r',
                         help='覆蓋參考音檔路徑（預設由 --voice 決定）')
     parser.add_argument('--text-file', '-t',

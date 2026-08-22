@@ -9,7 +9,7 @@ record.py - 麥克風錄音，取得 Ultimate Cloning 所需的參考音與逐�
   4. 文字內容同時存成 voices/<voice>/prompt.txt（逐字稿）
 
 用法：
-  python record.py                          # 預設聲音「三師爸」+ 預設文字
+  python record.py                          # 預設聲音「小吳」+ 預設文字
   python record.py --voice 我的聲音         # 指定聲音名稱
   python record.py --text-file my_text.txt  # 自訂朗讀文字
   python record.py --seconds 30             # 錄 30 秒
@@ -81,8 +81,8 @@ def save_wav(audio, filepath, sr=SAMPLE_RATE):
 
 def main():
     parser = argparse.ArgumentParser(description='VoxCPM2 參考音錄製')
-    parser.add_argument('--voice', '-v', default='三師爸',
-                        help='聲音名稱，存到 voices/<name>/（預設: 三師爸）')
+    parser.add_argument('--voice', '-v', default='小吳',
+                        help='聲音名稱，存到 voices/<name>/（預設: 小吳）')
     parser.add_argument('--text-file', '-t',
                         help='朗讀文字檔（預設: texts/sample_text.txt）')
     args = parser.parse_args()

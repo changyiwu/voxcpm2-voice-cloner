@@ -94,7 +94,7 @@ voxcpm2-voice-cloner/
 
 常用參數：
 
-- `--voice <名稱>`：對應 `voices/<名稱>/` 目錄（預設 `三師爸`）
+- `--voice <名稱>`：對應 `voices/<名稱>/` 目錄（預設 `小吳`）
 - `--file <路徑>`：從文字檔讀取要生成的內容
 - `--output <路徑>`：輸出路徑（預設 `output/cloned_voice.wav`）
 - `--device cuda|cpu`：強制指定裝置（預設自動偵測）

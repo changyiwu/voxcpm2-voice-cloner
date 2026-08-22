@@ -105,7 +105,7 @@ def main():
         with gr.Row():
             voice_name_input = gr.Textbox(
                 label='聲音名稱',
-                placeholder='例：三師爸、三帥媽、我的聲音',
+                placeholder='例：小吳、老柯、我的聲音',
                 value='',
                 scale=2,
             )
