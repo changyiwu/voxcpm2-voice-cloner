@@ -1,7 +1,7 @@
 # install.ps1 - VoxCPM2 Voice Cloner 自動安裝腳本
 # 自動偵測加速裝置，安裝對應的 PyTorch + voxcpm
 #
-# 用法：Windows  .\install.ps1
+# 用法：Windows  ./install.ps1
 #       macOS    pwsh -File install.ps1
 #
 # 裝置偵測邏輯：
