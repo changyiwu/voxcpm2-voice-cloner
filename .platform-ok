@@ -4,4 +4,4 @@
 # 指令範例以 Windows 形式呈現，檔案開頭已註明 macOS 的對應路徑（./.venv/bin/python）。
 # 兩種都列會讓每個程式碼區塊變兩倍長，可讀性得不償失。
 README.md
-agents.md
+AGENTS.md

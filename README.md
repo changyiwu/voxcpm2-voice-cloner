@@ -115,7 +115,7 @@ voxcpm2-voice-cloner/
 ├── start.bat                 # 雙擊啟動錄音 UI
 ├── install.bat               # 雙擊安裝
 ├── install.ps1               # 自動偵測 GPU + 安裝依賴
-├── agents.md                 # Agent 使用指南
+├── AGENTS.md                 # Agent 使用指南
 ├── texts/sample_text.txt     # 錄音時朗讀的文字
 ├── voices/                   # 已錄製的聲音（本地，不進版控）
 └── output/                   # 生成的語音

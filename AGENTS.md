@@ -1,7 +1,7 @@
 # VoxCPM2 Voice Cloner（專案藍圖）
 
 > 本檔為跨 Agent 通用的專案藍圖（AGENTS.md 開放標準）。任何 Agent 的每個 session 都應先讀本檔＋`handoff.md`。
-> Claude Code 不讀 `agents.md`，改由 `CLAUDE.md` 的 `@agents.md` import 本檔；Claude 專屬規範寫在 `CLAUDE.md`。
+> Claude Code 預設只在沒有 `CLAUDE.md` 時才讀 `AGENTS.md`，故由 `CLAUDE.md` 的 `@AGENTS.md` import 本檔；Claude 專屬規範寫在 `CLAUDE.md`。
 
 ## 專案簡介
 
@@ -23,8 +23,8 @@
 
 ```
 voxcpm2-voice-cloner/
-├── agents.md                 # 本檔：跨 Agent 專案藍圖
-├── CLAUDE.md                 # 橋接檔（@agents.md）
+├── AGENTS.md                 # 本檔：跨 Agent 專案藍圖
+├── CLAUDE.md                 # 橋接檔（@AGENTS.md）
 ├── handoff.md                # 交接檔
 ├── README.md                 # 給人看的完整說明
 ├── record_ui.py              # 錄音 UI（唯一介面，僅用標準庫）
@@ -46,7 +46,7 @@ voxcpm2-voice-cloner/
 
 | 層級 | 平台 | 位置 | 讀取時機 |
 |------|------|------|---------|
-| L1 | 本地（GDrive） | `agents.md`＋`handoff.md`＋`CLAUDE.md`（橋接） | 每個 session |
+| L1 | 本地（GDrive） | `AGENTS.md`＋`handoff.md`＋`CLAUDE.md`（橋接） | 每個 session |
 | L2 | GitHub | [changyiwu/voxcpm2-voice-cloner](https://github.com/changyiwu/voxcpm2-voice-cloner)（**公開**） | 指定時 |
 | L3 | Obsidian | `voxcpm2-voice-cloner/專案工作流程.md` | 有需要時 |
 
@@ -160,7 +160,7 @@ voxcpm2-voice-cloner/
 | 檔案 | 時效 | 寫入方式 | 放什麼 |
 |------|------|---------|--------|
 | `handoff.md` | **只對下一個 session 有效**，過期即丟 | 每次收工整份重寫 | 做到哪、下一步、**這次**的暫時 workaround |
-| `agents.md`（本檔） | **長期有效**，每個 session 都適用 | 只有規則本身變了才改 | 目標、路線圖、常設規則、結構 |
+| `AGENTS.md`（本檔） | **長期有效**，每個 session 都適用 | 只有規則本身變了才改 | 目標、路線圖、常設規則、結構 |
 | Obsidian／`git log` | **歷史**：發生過什麼、為什麼 | 只增不刪 | 決策紀錄、踩坑完整版、逐次進度 |
 
 驗收標準：**`handoff.md` 整份刪掉，不應損失任何長期資訊**——會的話代表該升級進本檔卻沒升級。
