@@ -8,6 +8,8 @@
 #   NVIDIA (CUDA)      → pip install torch --index-url .../cu128
 #   Apple Silicon      → pip install torch（PyPI 預設 wheel 已含 MPS，不可加 --index-url）
 #   無獨顯 (CPU)       → pip install torch --index-url .../cpu
+#   Windows on ARM     → 一律 CPU（即使有 NVIDIA RTX Spark）：cu128 索引沒有 win_arm64 wheel，
+#                        PyTorch 官方也尚未發布 Windows ARM64 的 CUDA 版
 
 $ErrorActionPreference = 'Stop'
 
@@ -55,6 +57,9 @@ if (Test-Path $venvPython) {
 Write-Host '[3/5] 偵測加速裝置...' -ForegroundColor Yellow
 $gpuType = 'cpu'
 $gpuName = ''
+# 看作業系統的架構，不看 pwsh 自己的：x64 版 pwsh 在 ARM 上模擬執行時，ProcessArchitecture 會回報 X64
+$isWindowsArm = $IsWindows -and
+    [Runtime.InteropServices.RuntimeInformation]::OSArchitecture -eq [Runtime.InteropServices.Architecture]::Arm64
 
 if ($IsWindows) {
     # Get-CimInstance Win32_VideoController 是 WMI，只有 Windows 有
@@ -65,6 +70,13 @@ if ($IsWindows) {
             $gpuName = $vc.Name
             break
         }
+    }
+    if ($isWindowsArm -and $gpuType -eq 'cuda') {
+        # 不可照 x64 的路走 cu128：那個索引沒有 win_arm64 wheel，uv 會直接裝失敗
+        Write-Host "  偵測到 $gpuName，但這台是 Windows on ARM。" -ForegroundColor Yellow
+        Write-Host '  PyTorch 官方尚未發布 Windows ARM64 的 CUDA 版，GPU 用不到，改用 CPU 模式。' -ForegroundColor Yellow
+        Write-Host '  日後官方發布了再重跑本腳本（刪掉 .venv 重建）。' -ForegroundColor Yellow
+        $gpuType = 'cpu'
     }
 } elseif ($IsMacOS) {
     # MPS 只有 Apple Silicon 有；Intel Mac 沒有，維持 cpu
@@ -101,11 +113,21 @@ if ($torchIndex) {
     # 指了反而裝不到含 MPS 的那份。
     uv pip install --python $venvPython torch
 }
+# 原生指令失敗不受 $ErrorActionPreference 管，不檢查的話會一路印「安裝完成」
+if ($LASTEXITCODE -ne 0) {
+    if ($isWindowsArm) {
+        throw 'PyTorch 安裝失敗。這台是 Windows on ARM，可能是該版 PyTorch 沒有 win_arm64 wheel；請把上面的錯誤訊息貼給 Agent 判斷。'
+    }
+    throw "PyTorch 安裝失敗（uv exit code: $LASTEXITCODE）"
+}
 Write-Host "  PyTorch 安裝完成。" -ForegroundColor Green
 
 # --- Step 5: 安裝 voxcpm + sounddevice + resampy ---
 Write-Host '[5/5] 安裝 voxcpm + sounddevice + resampy...' -ForegroundColor Yellow
 uv pip install --python $venvPython voxcpm sounddevice resampy
+if ($LASTEXITCODE -ne 0) {
+    throw "voxcpm／sounddevice／resampy 安裝失敗（uv exit code: $LASTEXITCODE）"
+}
 Write-Host "  voxcpm + sounddevice + resampy 安裝完成。" -ForegroundColor Green
 
 # --- 驗證 ---
